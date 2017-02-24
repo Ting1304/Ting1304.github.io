@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[mindclear]]></title>
+  <link href="http://mindclear.me/atom.xml" rel="self"/>
+  <link href="http://mindclear.me/"/>
+  <updated>2017-02-24T09:56:17+08:00</updated>
+  <id>http://mindclear.me/</id>
+  <author>
+    <name><![CDATA[]]></name>
+    
+  </author>
+  <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[python 变量]]></title>
+    <link href="http://mindclear.me/14877728262118.html"/>
+    <updated>2017-02-22T22:13:46+08:00</updated>
+    <id>http://mindclear.me/14877728262118.html</id>
+    <content type="html"><![CDATA[
+<p>在用<code>python</code>进行编码时，如果不理解<code>python</code>中的变量以及内存管理机制，可能会抛出意想不到的异常或者是产生诡异的结果。</p>
+
+<span id="more"></span><!-- more -->
+
+<h3 id="toc_0">问题出现</h3>
+
+<p>笔者在最近学习迪杰斯特拉算法时，就遇到了这个问题。</p>
+
+<p>在 github 上看到了一个对迪杰斯特拉算法的很优雅的实现，但是该程序返回的路径却要作进一步的处理才能得到想要的结果。琢磨着修改<a href="https://gist.github.com/kachayev/5990802">原作者的程序</a>（可能需要梯子）后，程序运行的结果出现了异常，求出的最短路径与原作者的不同。修改后的程序如下，其实就是修改路径的表示方式。</p>
+
+<pre><code class="language-python">def dijkstra(edges, f, t):
+    g = defaultdict(list)
+    for l, r, c in edges:
+        g[l].append((c, r))
+#    print(g)
+    q, seen = [(0, f, [])], set()
+    while q:
+        (cost, v1, path) = heappop(q)
+#        print(&quot;min&quot;)
+#        print((cost, v1, path))
+        if v1 not in seen:
+            seen.add(v1)
+            path.append(v1)
+            if v1 == t:
+                return (cost, path)
+#            print(&quot;push in heap&quot;)
+            for c, v2 in g.get(v1, ()):
+                if v2 not in seen:
+                    heappush(q, (cost+c, v2, path))
+#                    print((cost+c, v2, path))
+
+    return float(&quot;inf&quot;)
+</code></pre>
+
+<p>出现异常后，对程序的运行过程进行跟踪（去掉上面程序中的注释符号<code>#</code>）。一看结果，原来执行<code>path.append(v1)</code>后，优先队列里面的元素的路径<code>path</code>被修改了。依稀记得这种情况应该是引用，但也不太确定。</p>
+
+<p>为了理解<code>python</code>中的变量，在阅读了一些材料后，总算是明白了上面的程序出现异常的原因了。在<code>python</code>中的变量应该理解成名字或者标签。当进行赋值操作时，比如<code>a = []</code>，<code>python</code>创建了变量<code>a</code>与对象<code>[]</code>之间的绑定,相当于给对象<code>[]</code>贴上了标签<code>a</code>。而当执行<code>b = a</code>时，变量<code>b</code>也绑定了对象<code>[]</code>，相当于为对象<code>[]</code>创建了另一个标签。</p>
+
+<p>我们可以从以下的<code>Debug</code>过程看出来。</p>
+
+<h3 id="toc_1">Debug</h3>
+
+<p>在 pycharm 中对该程序进行调试，如下图所示<br/>
+<img src="media/14877728262118/Screen%20Shot%202017-02-23%20at%2009.04.34.png" alt="Screen Shot 2017-02-23 at 09.04.34"/></p>
+
+<p>对于<code>cpython</code>而言，<code>id()</code>返回一个对象的内存地址。可以看到，经过第一轮循环后，优先队列里面的两个元素中，path 的内存地址完全一样。也就是说，优先队列里的两个元素中的<code>path</code>指向了同一个内存地址，而<code>list</code>是<code>mutable type</code>，会在同一个内存地址改变内容而不是重新申请内存。因此，在进行下一轮的循环中，经过第37行的执行后，优先队列里的元素的<code>path</code>看起来被修改了，因为与出队的元素的<code>path</code>指向的是同一个内存地址。这就是让程序产生异常的原因了。</p>
+
+<p>然后作为对比地，我们 debug 原作者的程序。程序运行第37行代码后，<code>path</code>指向了另一个内存地址，不会修改优先队列里的元素。<br/>
+<img src="media/14877728262118/Screen%20Shot%202017-02-23%20at%2008.35.35.png" alt="Screen Shot 2017-02-23 at 08.35.35"/></p>
+
+<p>参考文章：<br/>
+<a href="http://foobarnbaz.com/2012/07/08/understanding-python-variables/">http://foobarnbaz.com/2012/07/08/understanding-python-variables/</a><br/>
+<a href="https://www.slideshare.net/nnja/memory-management-in-python-the-basics">https://www.slideshare.net/nnja/memory-management-in-python-the-basics</a></p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[SSH 免密码登录配置及设置多个 ssh key]]></title>
+    <link href="http://mindclear.me/14874012084862.html"/>
+    <updated>2017-02-18T15:00:08+08:00</updated>
+    <id>http://mindclear.me/14874012084862.html</id>
+    <content type="html"><![CDATA[
+<p>在远程连接到服务器时，笔者经常是在终端下完成的，包括上传下载登录等，不用 Putty、SecureCRT 之类的工具。在使用 SSH 协议登录远程主机时，默认要输入密码进行验证。而通过配置免密码登录，则可以不用敲密码而直接登录。</p>
+
+<span id="more"></span><!-- more -->
+
+<h3 id="toc_0">免密码登录配置</h3>
+
+<p>免密码登录基于非对称密码，即加密和解密使用不同的密钥，一个是公钥，另一个是私钥。</p>
+
+<p>首先用公钥算法 RSA 生成一对密钥：</p>
+
+<pre><code>ssh-keygen -t rsa
+</code></pre>
+
+<p>根据提示默认回车，在 <code>$HOME/.ssh</code> 目录下，会新生成两个文件<code>id_rsa</code>和<code>id_rsa.pub</code>。其中<code>id_rsa</code>是私钥，而<code>id_rsa.pub</code>是公钥。由于要设置多个<code>ssh key</code>，因此在提示所要保存的路径时，可以将密钥名字改为<code>xxx_rsa</code>。<br/>
+<img src="media/14874012084862/Screen%20Shot%202017-02-18%20at%2016.16.39.png" alt="Screen Shot 2017-02-18 at 16.16.39"/></p>
+
+<p>然后通过<code>scp</code>将<code>xxx_rsa.pub</code>上传到远程主机<code>$HOME/.ssh</code> 目录下（如果没有，则新建一个）：</p>
+
+<pre><code>scp xxx_rsa.pub &lt;remote user&gt;@&lt;remote machine&gt;:~/.ssh
+</code></pre>
+
+<p>然后在远程主机里将公钥复制到<code>authorized_keys</code>文件里，并赋予相关的权限：</p>
+
+<pre><code>chmod 700 ~/.ssh/
+cd ~/.ssh/
+touch authorized_keys
+cat xxx_rsa.pub &gt; authorized_keys
+chmod 600 authorized_keys
+</code></pre>
+
+<p>在远程主机的配置文件<code>/etc/ssh/sshd_config</code>里，将<code>PubkeyAuthentication yes</code>和<code>RSAAuthentication yes</code>的注释去掉，然后重启远程主机的 SSH 服务（centos 7）：</p>
+
+<pre><code>systemctl restart sshd.service
+</code></pre>
+
+<p>接下来就可以免密码登录了。</p>
+
+<pre><code>ssh -p port user@hostname
+</code></pre>
+
+<h3 id="toc_1">设置多个 ssh key</h3>
+
+<p>在设置完免密登录后，可以不用敲密码了。但是要登录不同的远程主机时，每个帐号参数配置可能不同，比如端口设置不同，这时候敲命令就很劳神费力了。SSH 提供了配置文件用来管理用户的 SSH 会话，该机制可以大大的方便用户登录。</p>
+
+<p>在<code>~/.ssh/</code>新建 config 文件，其配置如下：</p>
+
+<pre><code>Host    alias
+    HostName        hostname
+    Port             port
+    User             user
+    IdentityFile         ~/.ssh/xxx_rsa
+    StrictHostKeyChecking no
+</code></pre>
+
+<p>若要设置多个 ssh key ，只需要在 config 文件中添加多个<code>HOST</code>即可。</p>
+
+<p>在<code>.ssh/</code>目录下，还有一个文件是<code>known_hosts</code>，该文件是已知的主机公钥名单。</p>
+
+<p>在第一次连接远程主机时，OpenSSH 会提示：<code>无法辨认主机的真实性，询问是否要继续连接</code>。手动输入 yes 之后 ssh 就会将远程主机地址及对应的公钥添加进 known_hosts 文件。下一次连接同一台远程主机时，OpenSSH 通过 known_hosts 文件识别出它的公钥已经保存在本地了，从而跳过提示。</p>
+
+<p>将<code>StrictHostKeyChecking</code>设置成 no 后，在第一次连接时，ssh 将会自动添加远程主机的相关信息，省略了手动敲 yes 的步骤。</p>
+
+<p>最后在终端执行命令<code>ssh alias</code>就可以了。</p>
+
+]]></content>
+  </entry>
+  
+</feed>

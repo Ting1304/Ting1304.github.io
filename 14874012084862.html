@@ -1,0 +1,359 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  SSH 免密码登录配置及设置多个 ssh key - mindclear
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="mindclear" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:mindclear.me ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="_self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; mindclear</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="python.html">python</a></li>
+        
+            <li><a href="tool.html">tool</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>SSH 免密码登录配置及设置多个 ssh key</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2017/2/18</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='tool.html'>tool</a></span>
+           
+         
+          <span class="comments">
+            
+              <a href="http://mindclear.me/14874012084862.html#disqus_thread">comments</a>
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <p>在远程连接到服务器时，笔者经常是在终端下完成的，包括上传下载登录等，不用 Putty、SecureCRT 之类的工具。在使用 SSH 协议登录远程主机时，默认要输入密码进行验证。而通过配置免密码登录，则可以不用敲密码而直接登录。</p>
+
+<span id="more"></span><!-- more -->
+
+<h3 id="toc_0">免密码登录配置</h3>
+
+<p>免密码登录基于非对称密码，即加密和解密使用不同的密钥，一个是公钥，另一个是私钥。</p>
+
+<p>首先用公钥算法 RSA 生成一对密钥：</p>
+
+<pre><code>ssh-keygen -t rsa
+</code></pre>
+
+<p>根据提示默认回车，在 <code>$HOME/.ssh</code> 目录下，会新生成两个文件<code>id_rsa</code>和<code>id_rsa.pub</code>。其中<code>id_rsa</code>是私钥，而<code>id_rsa.pub</code>是公钥。由于要设置多个<code>ssh key</code>，因此在提示所要保存的路径时，可以将密钥名字改为<code>xxx_rsa</code>。<br/>
+<img src="media/14874012084862/Screen%20Shot%202017-02-18%20at%2016.16.39.png" alt="Screen Shot 2017-02-18 at 16.16.39"/></p>
+
+<p>然后通过<code>scp</code>将<code>xxx_rsa.pub</code>上传到远程主机<code>$HOME/.ssh</code> 目录下（如果没有，则新建一个）：</p>
+
+<pre><code>scp xxx_rsa.pub &lt;remote user&gt;@&lt;remote machine&gt;:~/.ssh
+</code></pre>
+
+<p>然后在远程主机里将公钥复制到<code>authorized_keys</code>文件里，并赋予相关的权限：</p>
+
+<pre><code>chmod 700 ~/.ssh/
+cd ~/.ssh/
+touch authorized_keys
+cat xxx_rsa.pub &gt; authorized_keys
+chmod 600 authorized_keys
+</code></pre>
+
+<p>在远程主机的配置文件<code>/etc/ssh/sshd_config</code>里，将<code>PubkeyAuthentication yes</code>和<code>RSAAuthentication yes</code>的注释去掉，然后重启远程主机的 SSH 服务（centos 7）：</p>
+
+<pre><code>systemctl restart sshd.service
+</code></pre>
+
+<p>接下来就可以免密码登录了。</p>
+
+<pre><code>ssh -p port user@hostname
+</code></pre>
+
+<h3 id="toc_1">设置多个 ssh key</h3>
+
+<p>在设置完免密登录后，可以不用敲密码了。但是要登录不同的远程主机时，每个帐号参数配置可能不同，比如端口设置不同，这时候敲命令就很劳神费力了。SSH 提供了配置文件用来管理用户的 SSH 会话，该机制可以大大的方便用户登录。</p>
+
+<p>在<code>~/.ssh/</code>新建 config 文件，其配置如下：</p>
+
+<pre><code>Host    alias
+    HostName        hostname
+    Port             port
+    User             user
+    IdentityFile         ~/.ssh/xxx_rsa
+    StrictHostKeyChecking no
+</code></pre>
+
+<p>若要设置多个 ssh key ，只需要在 config 文件中添加多个<code>HOST</code>即可。</p>
+
+<p>在<code>.ssh/</code>目录下，还有一个文件是<code>known_hosts</code>，该文件是已知的主机公钥名单。</p>
+
+<p>在第一次连接远程主机时，OpenSSH 会提示：<code>无法辨认主机的真实性，询问是否要继续连接</code>。手动输入 yes 之后 ssh 就会将远程主机地址及对应的公钥添加进 known_hosts 文件。下一次连接同一台远程主机时，OpenSSH 通过 known_hosts 文件识别出它的公钥已经保存在本地了，从而跳过提示。</p>
+
+<p>将<code>StrictHostKeyChecking</code>设置成 no 后，在第一次连接时，ssh 将会自动添加远程主机的相关信息，省略了手动敲 yes 的步骤。</p>
+
+<p>最后在终端执行命令<code>ssh alias</code>就可以了。</p>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="14877728262118.html" 
+          title="Previous Post: python 变量">&laquo; python 变量</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+            <div id="disqus_thread"></div>
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/funian.jpeg" /></div>
+            
+                <h1>mindclear</h1>
+                <div class="site-des">自明</div>
+                <div class="social">
+
+
+
+
+
+
+
+
+
+<a target="_blank" class="github" target="_blank" href="https://github.com/Ting1304" title="GitHub">GitHub</a>
+<a target="_blank" class="email" href="mailto:myyvpn@gmail.com" title="Email">Email</a>
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="python.html"><strong>python</strong></a>
+        
+            <a href="tool.html"><strong>tool</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="14877728262118.html">python 变量</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="14874012084862.html">SSH 免密码登录配置及设置多个 ssh key</a>
+			      </li>
+		     
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+
+<script type="text/javascript">
+    var disqus_shortname = 'mind-clear'; 
+
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+
+<script type="text/javascript">
+var disqus_shortname = 'mind-clear'; 
+
+(function () {
+var s = document.createElement('script'); s.async = true;
+s.type = 'text/javascript';
+s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+(document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+}());
+</script>
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
+<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
+
+
+  </body>
+</html>
